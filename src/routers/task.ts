@@ -11,9 +11,9 @@ const router = Router();
 
 router.get('/', controller.getTasksByUser);
 
-router.get('/:taskId', controller.getTaskById);
-
 router.post('/', validator(createTaskSchema), controller.createTask);
+
+router.get('/:taskId', controller.getTaskById);
 
 router.put('/:taskId', validator(createTaskSchema), controller.editTask);
 
