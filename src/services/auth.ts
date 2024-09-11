@@ -1,10 +1,12 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import env from '../utils/env';
+import LoggedUser from 'types/user';
 
-const JWT_SIGN_KEY = process.env.JWT_SIGN_KEY!;
+const JWT_SIGN_KEY = env.JWT_SIGN_KEY!;
 
 class AuthService {
-  generateToken(user: any) {
+  generateToken(user: LoggedUser) {
     const token = jwt.sign(user, JWT_SIGN_KEY);
     return token;
   }

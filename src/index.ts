@@ -1,9 +1,11 @@
 import http from 'http';
 import app from './app';
 import mongoose from 'mongoose';
+import env from './utils/env';
 
-const PORT = process.env.PORT ?? 5000;
-const DATABASE_URL = process.env.DATABASE_URL!;
+const PORT = env.PORT ?? 5000;
+
+const DATABASE_URL = env.DATABASE_URL;
 
 const server = http.createServer(app);
 

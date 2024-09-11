@@ -1,8 +1,9 @@
-import {Schema} from 'mongoose';
+import {Schema, Types} from 'mongoose';
 import {Status} from '../../utils/enum/status';
 import SubtaskSchema, {ISubtask} from './subtask';
 
 export interface ITask extends Document {
+  _id: Types.ObjectId;
   subject: string;
   deadline: Date;
   status: Status;

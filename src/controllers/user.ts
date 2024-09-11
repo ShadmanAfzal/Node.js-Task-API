@@ -1,5 +1,5 @@
-import {NotFoundError} from '../utils/error';
 import UserService from '../services/user';
+import {NotFoundError} from '../utils/error';
 import {NextFunction, Request, Response} from 'express';
 
 const userService = new UserService();
@@ -14,7 +14,7 @@ const getLoggedUser = async (
 
     if (!user) throw new NotFoundError('user not found');
 
-    res.send({user});
+    return res.send({message: 'user details fetched successfully', user});
   } catch (error) {
     next(error);
   }
