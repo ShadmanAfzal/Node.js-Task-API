@@ -19,7 +19,7 @@ class UserService {
   }
 
   async findUserById(id: string) {
-    return await User.findById(id).select('-password').select('-tasks');
+    return await User.findById(id).select('-password -tasks');
   }
 }
 

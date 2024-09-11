@@ -71,6 +71,8 @@ const deleteTask = async (req: Request, res: Response) => {
 const getSubTasks = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const taskId = req.params.taskId;
+    const task = await taskService.getTaskById(req.user.id, taskId);
+    if (!task) throw new NotFoundError('task not found');
     const subtask = await taskService.getSubTasksByTaskId(req.user.id, taskId);
     return res.send({
       message: 'subtasks fetched successfully',
@@ -84,6 +86,8 @@ const getSubTasks = async (req: Request, res: Response, next: NextFunction) => {
 const addSubTasks = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const taskId = req.params.taskId;
+    const task = await taskService.getTaskById(req.user.id, taskId);
+    if (!task) throw new NotFoundError('task not found');
     const subtask = await taskService.addSubTasks(
       req.body,
       req.user.id,
@@ -105,6 +109,8 @@ const updateSubTasks = async (
 ) => {
   try {
     const taskId = req.params.taskId;
+    const task = await taskService.getTaskById(req.user.id, taskId);
+    if (!task) throw new NotFoundError('task not found');
     const subtask = await taskService.updateSubtasks(
       req.body,
       req.user.id,

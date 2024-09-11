@@ -1,13 +1,14 @@
 import {z} from 'zod';
+import mongoose from 'mongoose';
 
+import User from '../db';
 import UserService from './user';
 import {
   createSubTaskSchema,
   createTaskSchema,
   updateSubTaskSchema,
 } from '../utils/validation-schema/task';
-import User from '../db';
-import mongoose from 'mongoose';
+import {filterTask} from '../utils/helper/filterRecords';
 
 class TaskService {
   userService: UserService;
@@ -35,9 +36,9 @@ class TaskService {
   }
 
   async getTaskByUser(userId: string) {
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).lean();
 
-    return user?.tasks.filter(task => !task.isDeleted);
+    return filterTask(user?.tasks);
   }
 
   async getTaskById(userId: string, taskId: string) {
@@ -57,7 +58,7 @@ class TaskService {
       }
     ).lean();
 
-    return user?.tasks?.at(0);
+    return filterTask(user?.tasks)?.at(0);
   }
 
   async updateTask(
@@ -99,7 +100,7 @@ class TaskService {
   async getSubTasksByTaskId(userId: string, taskId: string) {
     const task = await this.getTaskById(userId, taskId);
 
-    return task?.subtasks.filter(subtask => !subtask.isDeleted);
+    return task?.subtasks;
   }
 
   async addSubTasks(
