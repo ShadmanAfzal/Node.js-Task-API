@@ -8,7 +8,6 @@ import {
   createTaskSchema,
   updateSubTaskSchema,
 } from '../utils/validation-schema/task';
-import {filterTask} from '../utils/helper/filterRecords';
 
 class TaskService {
   userService: UserService;
@@ -36,29 +35,129 @@ class TaskService {
   }
 
   async getTaskByUser(userId: string) {
-    const user = await User.findById(userId).lean();
+    const user = await User.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(userId),
+        },
+      },
+      {
+        $project: {
+          tasks: {
+            $filter: {
+              input: '$tasks',
+              as: 'task',
+              cond: {$eq: ['$$task.isDeleted', false]},
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          tasks: {
+            $map: {
+              input: '$tasks',
+              as: 'task',
+              in: {
+                _id: '$$task._id',
+                subject: '$$task.subject',
+                deadline: '$$task.deadline',
+                status: '$$task.status',
+                subtasks: {
+                  $map: {
+                    input: {
+                      $filter: {
+                        input: '$$task.subtasks',
+                        as: 'subtask',
+                        cond: {$eq: ['$$subtask.isDeleted', false]}, // Filter out deleted subtasks
+                      },
+                    },
+                    as: 'subtask',
+                    in: {
+                      _id: '$$subtask._id',
+                      subject: '$$subtask.subject',
+                      deadline: '$$subtask.deadline',
+                      status: '$$subtask.status',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    ]);
 
-    return filterTask(user?.tasks);
+    return user.at(0).tasks;
   }
 
   async getTaskById(userId: string, taskId: string) {
-    const user = await User.findOne(
+    const user = await User.aggregate([
       {
-        _id: userId,
-        'tasks._id': taskId,
-        'tasks.isDeleted': false,
-      },
-      {
-        tasks: {
-          $elemMatch: {
-            _id: taskId,
-            isDeleted: false,
+        $match: {
+          tasks: {
+            $elemMatch: {
+              _id: new mongoose.Types.ObjectId(taskId),
+            },
           },
         },
-      }
-    ).lean();
+      },
+      {
+        $project: {
+          name: 1,
+          email: 1,
+          password: 1,
+          tasks: {
+            $map: {
+              input: {
+                $filter: {
+                  input: '$tasks',
+                  as: 'task',
+                  cond: {
+                    $and: [
+                      {
+                        $eq: [
+                          '$$task._id',
+                          new mongoose.Types.ObjectId(taskId),
+                        ],
+                      },
+                      {$eq: ['$$task.isDeleted', false]},
+                    ],
+                  },
+                },
+              },
+              as: 'task',
+              in: {
+                _id: '$$task._id',
+                subject: '$$task.subject',
+                deadline: '$$task.deadline',
+                status: '$$task.status',
+                subtasks: {
+                  $map: {
+                    input: {
+                      $filter: {
+                        input: '$$task.subtasks',
+                        as: 'subtask',
+                        cond: {$eq: ['$$subtask.isDeleted', false]},
+                      },
+                    },
+                    as: 'subtask',
+                    in: {
+                      _id: '$$subtask._id',
+                      subject: '$$subtask.subject',
+                      deadline: '$$subtask.deadline',
+                      status: '$$subtask.status',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    ]);
 
-    return filterTask(user?.tasks)?.at(0);
+    return user?.at(0).tasks?.at(0);
   }
 
   async updateTask(
@@ -99,7 +198,6 @@ class TaskService {
 
   async getSubTasksByTaskId(userId: string, taskId: string) {
     const task = await this.getTaskById(userId, taskId);
-
     return task?.subtasks;
   }
 
