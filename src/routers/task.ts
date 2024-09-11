@@ -1,29 +1,38 @@
 import {Router} from 'express';
 import controller from '../controllers/task';
-import ensureAuthentication from '../middlewares/auth';
 import validator from '../middlewares/validator';
-import {createTaskSchema} from '../utils/validation-schema/task';
+import {
+  createSubTaskSchema,
+  createTaskSchema,
+  updateSubTaskSchema,
+} from '../utils/validation-schema/task';
 
 const router = Router();
 
-router.get('/', ensureAuthentication, controller.getTasksByUser);
+router.get('/', controller.getTasksByUser);
 
-router.get('/:taskId', ensureAuthentication, controller.getTaskById);
+router.get('/:taskId', controller.getTaskById);
+
+router.post('/', validator(createTaskSchema), controller.createTask);
+
+router.put('/:taskId', validator(createTaskSchema), controller.editTask);
+
+router.delete('/:taskId', controller.deleteTask);
+
+router.get('/:taskId/subtasks', controller.getSubTasks);
 
 router.post(
-  '/',
-  ensureAuthentication,
-  validator(createTaskSchema),
-  controller.createTask
+  '/:taskId/subtasks',
+  validator(createSubTaskSchema),
+  controller.addSubTasks
 );
 
 router.put(
-  '/:taskId',
-  ensureAuthentication,
-  validator(createTaskSchema),
-  controller.editTask
+  '/:taskId/subtasks',
+  validator(updateSubTaskSchema),
+  controller.updateSubTasks
 );
 
-router.delete('/:taskId', ensureAuthentication, controller.deleteTask);
+router.delete('/:taskId/subtasks/:subTaskId', controller.deleteSubTaskById);
 
 export default router;

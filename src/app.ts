@@ -7,6 +7,7 @@ import tasksRouter from './routers/task';
 
 import errorHandler from './middlewares/error';
 import env from './utils/env';
+import ensureAuthentication from './middlewares/auth';
 
 const app = express();
 
@@ -16,13 +17,13 @@ app.use(express.json());
 
 app.use(morgan(isDev ? 'dev' : 'combined'));
 
-app.get('/health', (_, res) => res.sendStatus(200));
+app.get('/health', (req, res) => res.sendStatus(200));
 
 app.use('/auth', authRouter);
 
-app.use('/user', userRouter);
+app.use('/user', ensureAuthentication, userRouter);
 
-app.use('/tasks', tasksRouter);
+app.use('/tasks', ensureAuthentication, tasksRouter);
 
 app.use(errorHandler);
 

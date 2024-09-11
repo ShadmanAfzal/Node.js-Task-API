@@ -1,7 +1,11 @@
 import {z} from 'zod';
 
 import UserService from './user';
-import {createTaskSchema} from '../utils/validation-schema/task';
+import {
+  createSubTaskSchema,
+  createTaskSchema,
+  updateSubTaskSchema,
+} from '../utils/validation-schema/task';
 import User from '../db';
 import mongoose from 'mongoose';
 
@@ -88,6 +92,78 @@ class TaskService {
         $set: {
           'tasks.$.isDeleted': true,
         },
+      }
+    );
+  }
+
+  async getSubTasksByTaskId(userId: string, taskId: string) {
+    const task = await this.getTaskById(userId, taskId);
+
+    return task?.subtasks.filter(subtask => !subtask.isDeleted);
+  }
+
+  async addSubTasks(
+    tasks: z.infer<typeof createSubTaskSchema>,
+    userId: string,
+    taskId: string
+  ) {
+    await User.findOneAndUpdate(
+      {
+        _id: userId,
+        'tasks._id': taskId,
+      },
+      {$push: {'tasks.$.subtasks': {$each: tasks.subtasks}}}
+    );
+
+    const task = await this.getTaskById(userId, taskId.toString());
+
+    return task?.subtasks;
+  }
+
+  async updateSubtasks(
+    tasks: z.infer<typeof updateSubTaskSchema>,
+    userId: string,
+    taskId: string
+  ) {
+    for (const subtask of tasks.subtasks) {
+      await User.updateOne(
+        {
+          _id: userId,
+          'tasks._id': taskId,
+          'tasks.subtasks._id': subtask._id,
+        },
+        {
+          $set: {
+            'tasks.$.subtasks.$[subtask].status': subtask.status,
+            'tasks.$.subtasks.$[subtask].subject': subtask.subject,
+            'tasks.$.subtasks.$[subtask].deadline': subtask.deadline,
+          },
+        },
+        {
+          arrayFilters: [{'subtask._id': subtask._id}],
+        }
+      );
+    }
+
+    const updatedTask = await this.getTaskById(userId, taskId);
+
+    return updatedTask?.subtasks;
+  }
+
+  async deleteSubTaskById(userId: string, taskId: string, subTaskId: string) {
+    await User.updateOne(
+      {
+        _id: userId,
+        'tasks._id': taskId,
+        'tasks.subtasks._id': subTaskId,
+      },
+      {
+        $set: {
+          'tasks.$.subtasks.$[subtask].isDeleted': true,
+        },
+      },
+      {
+        arrayFilters: [{'subtask._id': subTaskId}],
       }
     );
   }
