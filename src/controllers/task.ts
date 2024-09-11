@@ -76,7 +76,7 @@ const getSubTasks = async (req: Request, res: Response, next: NextFunction) => {
     const subtask = await taskService.getSubTasksByTaskId(req.user.id, taskId);
     return res.send({
       message: 'subtasks fetched successfully',
-      subtask: subtask ?? [],
+      subtasks: subtask ?? [],
     });
   } catch (error) {
     next(error);
@@ -117,8 +117,8 @@ const updateSubTasks = async (
       taskId
     );
     return res.send({
-      message: 'subtasks created successfully',
-      subtask: subtask ?? [],
+      message: 'subtasks updated successfully',
+      subtasks: subtask ?? [],
     });
   } catch (error) {
     next(error);

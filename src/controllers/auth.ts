@@ -24,7 +24,7 @@ const loginUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = await userService.findUserByEmail(req.body.email);
 
-    if (!user) throw new NotFoundError('user not found');
+    if (!user) throw new NotFoundError('invalid email or password');
 
     const isValid = await authService.validatePassword(
       user?.password,
