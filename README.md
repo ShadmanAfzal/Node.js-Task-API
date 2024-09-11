@@ -1,4 +1,4 @@
-# Express Application
+# Task/Sub-Task CRUD Application
 
 This is an Express application built using TypeScript, Mongoose, and other modern web development tools. The application includes several key features, such as authentication, user management, and task management, all backed by a MongoDB database.
 
@@ -84,6 +84,8 @@ npm run start
 
 The following API endpoints are available:
 
+For detailed documentation head over to https://documenter.getpostman.com/view/37598490/2sAXqmB5iA
+
 #### Health Check:
 
 - GET `/health` - Returns the status of the application.
@@ -104,7 +106,123 @@ The following API endpoints are available:
 - GET `/tasks/:taskId` - Get a task by its ID.
 - PUT `/tasks/:taskId` - Update a task.
 - DELETE `/tasks/:taskId` - Soft-delete a task.
-- GET `tasks/:taskId/subtasks` - Get all sub-tasks for a task Id
-- POST `tasks/:taskId/subtasks` - Create new sub-tasks for a task id
-- PUT `tasks/:taskId/subtasks` - Update sub-tasks
-- DELETE `tasks/:taskId/subtasks/:subTaskId` - Soft-delete a sub-task
+- GET `tasks/:taskId/subtasks` - Get all sub-tasks for a task Id.
+- POST `tasks/:taskId/subtasks` - Create new sub-tasks for a task id.
+- PUT `tasks/:taskId/subtasks` - Update sub-tasks.
+- DELETE `tasks/:taskId/subtasks/:subTaskId` - Soft-delete a sub-task.
+
+## Database Design
+
+#### MongoDB Schema
+
+##### User Schema
+
+```typescript
+const UserSchema = new Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  password: {
+    type: String,
+    required: true,
+  },
+  tasks: [TaskSchema],
+});
+```
+
+- name: The name of the user.
+- email: The unique email address of the user.
+- password: The hashed password for authentication.
+- tasks: An list of tasks associated with the user.
+
+##### Task Schema
+
+```typescript
+const TaskSchema = new Schema({
+  subject: {
+    type: String,
+    required: true,
+  },
+  deadline: {
+    type: Date,
+    required: true,
+  },
+  status: {
+    type: String,
+    enum: Object.values(Status),
+    default: Status.PENDING,
+  },
+  isDeleted: {
+    type: Boolean,
+    default: false,
+  },
+  subtasks: {
+    type: [SubtaskSchema],
+    default: [],
+  },
+});
+```
+
+- subject: The title or subject of the task.
+- deadline: The due date for the task (YYYY-MM-DD format).
+- status: The current status of the task (e.g., `Pending`, `In Progress`, `Completed`).
+- isDeleted: Indicates whether the task is soft-deleted.
+- subtasks: An array of subtasks associated with the task.
+
+##### Subtask Schema
+
+```typescript
+const SubtaskSchema = new Schema({
+  subject: {
+    type: String,
+    required: true,
+  },
+  deadline: {
+    type: Date,
+    required: true,
+  },
+  status: {
+    type: String,
+    enum: Object.values(Status),
+    default: Status.PENDING,
+  },
+  isDeleted: {
+    type: Boolean,
+    default: false,
+  },
+});
+```
+
+- subject: The title or subject of the task.
+- deadline: The due date for the task (YYYY-MM-DD format).
+- status: The current status of the task (e.g., `Pending`, `In Progress`, `Completed`).
+- isDeleted: Indicates whether the task is soft-deleted.
+- subtasks: An array of subtasks associated with the task.
+
+#### Relationships
+
+**User and Task**: A user can have multiple tasks. The tasks field in the UserSchema stores an array of tasks associated with the user.
+
+**Task and Subtasks**: A task can have multiple subtasks. The subtasks field in the TaskSchema stores an array of subtasks associated with the task.
+
+## Code Style and Linting
+
+This project uses [gts](https://github.com/google/gts) for code style and linting. Ensure that your code adheres to this style by running the following commands:
+
+#### To lint the codebase:
+
+```bash
+npm run lint
+```
+
+#### To fix the formatting:
+
+```bash
+npm run fix
+```
