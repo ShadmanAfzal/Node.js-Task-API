@@ -95,6 +95,7 @@ class TaskService {
     const user = await User.aggregate([
       {
         $match: {
+          _id: new mongoose.Types.ObjectId(userId),
           tasks: {
             $elemMatch: {
               _id: new mongoose.Types.ObjectId(taskId),
