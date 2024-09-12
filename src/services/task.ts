@@ -14,6 +14,13 @@ class TaskService {
   constructor() {
     this.userService = new UserService();
   }
+  /**
+   * Creates a new task for a specified user and adds it to the user's task list.
+   *
+   * @param taskBody - The details of the task to be created, validated against `createTaskSchema`.
+   * @param userId - The ID of the user for whom the task is being created.
+   * @returns A promise that returns the newly created task.
+   */
   async createTask(taskBody: z.infer<typeof createTaskSchema>, userId: string) {
     const taskId = new mongoose.Types.ObjectId();
 
@@ -34,6 +41,12 @@ class TaskService {
     return await this.getTaskById(userId, taskId.toString());
   }
 
+  /**
+   * Retrieves all non-deleted tasks and their subtasks for a specified user.
+   *
+   * @param userId - The ID of the user whose tasks are to be retrieved.
+   * @returns A promise that returns an array of tasks belonging to the user, including non-deleted subtasks.
+   */
   async getTaskByUser(userId: string) {
     const user = await User.aggregate([
       {
@@ -69,7 +82,7 @@ class TaskService {
                       $filter: {
                         input: '$$task.subtasks',
                         as: 'subtask',
-                        cond: {$eq: ['$$subtask.isDeleted', false]}, // Filter out deleted subtasks
+                        cond: {$eq: ['$$subtask.isDeleted', false]},
                       },
                     },
                     as: 'subtask',
@@ -91,6 +104,13 @@ class TaskService {
     return user.at(0).tasks;
   }
 
+  /**
+   * Retrieves a specific non-deleted task by its ID for a given user, including its non-deleted subtasks.
+   *
+   * @param userId - The ID of the user to whom the task belongs.
+   * @param taskId - The ID of the task to be retrieved.
+   * @returns A promise that returns the task object if found, including its subtasks, or `undefined` if the task is not found or is deleted.
+   */
   async getTaskById(userId: string, taskId: string) {
     const user = await User.aggregate([
       {
@@ -158,9 +178,17 @@ class TaskService {
       },
     ]);
 
-    return user?.at(0).tasks?.at(0);
+    return user?.at(0)?.tasks?.at(0);
   }
 
+  /**
+   * Updates the specified task for a given user with new details.
+   *
+   * @param task - The updated task details, validated against `createTaskSchema`.
+   * @param taskId - The ID of the task to be updated.
+   * @param userId - The ID of the user to whom the task belongs.
+   * @returns A promise that returns the updated task object if the update is successful, or `null` if the task is not found.
+   */
   async updateTask(
     task: z.infer<typeof createTaskSchema>,
     taskId: string,
@@ -183,6 +211,13 @@ class TaskService {
     return this.getTaskById(userId, taskId);
   }
 
+  /**
+   * Marks a specific task as deleted for a given user by setting the `isDeleted` field to `true`.
+   *
+   * @param userId - The ID of the user to whom the task belongs.
+   * @param taskId - The ID of the task to be marked as deleted.
+   * @returns A promise that returns when the task is successfully marked as deleted.
+   */
   async deleteTask(userId: string, taskId: string) {
     await User.updateOne(
       {
@@ -197,6 +232,13 @@ class TaskService {
     );
   }
 
+  /**
+   * Retrieves all subtasks for a specific task of a given user.
+   *
+   * @param userId - The ID of the user to whom the task belongs.
+   * @param taskId - The ID of the task whose subtasks are to be retrieved.
+   * @returns A promise that returns an array of subtasks for the specified task, or `undefined` if the task is not found.
+   */
   async getSubTasksByTaskId(userId: string, taskId: string) {
     const task = await this.getTaskById(userId, taskId);
     return task?.subtasks;
@@ -220,6 +262,14 @@ class TaskService {
     return task?.subtasks;
   }
 
+  /**
+   * Updates the subtasks of a specific task for a given user with new details.
+   *
+   * @param tasks - An object containing an array of subtasks to be updated, validated against `updateSubTaskSchema`.
+   * @param userId - The ID of the user to whom the task belongs.
+   * @param taskId - The ID of the task whose subtasks are to be updated.
+   * @returns A promise that returns all the updated subtasks.
+   */
   async updateSubtasks(
     tasks: z.infer<typeof updateSubTaskSchema>,
     userId: string,
@@ -250,6 +300,14 @@ class TaskService {
     return updatedTask?.subtasks;
   }
 
+  /**
+   * Marks a specific subtask as deleted by setting the `isDeleted` flag to `true`.
+   *
+   * @param userId - The ID of the user to whom the task belongs.
+   * @param taskId - The ID of the task that contains the subtask.
+   * @param subTaskId - The ID of the subtask to be marked as deleted.
+   * @returns A promise that returns once the subtask is successfully marked as deleted.
+   */
   async deleteSubTaskById(userId: string, taskId: string, subTaskId: string) {
     await User.updateOne(
       {

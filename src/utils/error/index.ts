@@ -1,5 +1,6 @@
 import status_code from 'http-status-codes';
 
+// Base class for HTTP-related errors
 class HttpError extends Error {
   statusCode: number;
   constructor(message: string) {
@@ -9,6 +10,7 @@ class HttpError extends Error {
   }
 }
 
+// Error class for 404 Not Found errors
 export class NotFoundError extends HttpError {
   constructor(message: string) {
     super(message);
@@ -17,6 +19,7 @@ export class NotFoundError extends HttpError {
   }
 }
 
+// Error class for 401 Unauthorized errors
 export class UnAuthorizedError extends HttpError {
   constructor(message: string) {
     super(message);
@@ -25,6 +28,7 @@ export class UnAuthorizedError extends HttpError {
   }
 }
 
+// Error class for 400 Bad Request errors
 export class BadRequestError extends HttpError {
   constructor(message: string) {
     super(message);
@@ -33,6 +37,7 @@ export class BadRequestError extends HttpError {
   }
 }
 
+// Error class for 500 Internal Server Error errors
 export class InternalServerError extends HttpError {
   constructor(message: string) {
     super(message);
@@ -41,6 +46,7 @@ export class InternalServerError extends HttpError {
   }
 }
 
+// Error class for 409 Conflict errors
 export class ConflictError extends HttpError {
   constructor(message: string) {
     super(message);
